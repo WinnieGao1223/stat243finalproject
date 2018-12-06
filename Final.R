@@ -1,3 +1,10 @@
+#calculate the derivative of a function
+Deriv_sub <- function(x, fun=h, a, b){
+  if (x == a) {return ((fun(x + 1e-9)-fun(x))/1e-9)}
+  if (x == b) {return ((fun(x) - fun(x - 1e-9))/1e-9)}
+  if (a <= x && x <= b) {return((fun(x + 1e-9)-fun(x - 1e-9))/2e-9)}
+}
+
 init_mat <- function(a,b,fun,deriv){
   #this mat stores x,f(x) and df(x)
   mat <- matrix(nrow = 2,ncol = 3)
@@ -5,26 +12,13 @@ init_mat <- function(a,b,fun,deriv){
   mat[1,2] <- fun(a)
   mat[1,3] <- deriv(a)
   mat[2,1] <- b
-  mat[1,2] <- fun(b)
-  mat[1,3] <- deriv(b)
-  return(mat)
-}
-
-#calculate the derivative of a function
-Derv <- function(x, fun, a, b){
-  if (x == a) {return ((fun(x + 1e-9)-fun(x))/1e-9)}
-  if (x == b) {return ((fun(x) - fun(x - 1e-9))/1e-9)}
-  if (a <= x && x <= b) {return((fun(x + 1e-9)-fun(x - 1e-9))/2e-9)}
-}
-
-## Take log of input function ##
-h <- function(x,g){
-  return(log(g(x)))
-}
+  mat[2,2] <- fun(b)
+  mat[2,3] <- deriv(b)
+  return(mat)}
 
 calc_z <-function(mat){
   return((mat[2, 2] - mat[1, 2] -mat[2, 1]*mat[2, 3] +
-            mat[1, 1]*mat[1, 3])/(mat[1, 3] - mat[2, 3]))
+  mat[1, 1]*mat[1, 3])/(mat[1, 3] - mat[2, 3]))
 }
 
 init_z <- function(a,b,mat){
@@ -38,7 +32,7 @@ init_z <- function(a,b,mat){
 #we put the x in ascending order
 update_mat <- function(mat,x_star,fun,deriv){
   index <- sum(mat[,1] < x_star) #find the location to insert x*
-  tmp <- matrix(NA,1,3) 
+  tmp <- matrix(NA,1,3)
   mat <- rbind(mat,tmp)
   mat[(index+2):nrow(mat),] <- mat[(index+1):(nrow(mat)-1),]
   mat[(index+1),] <- c(x_star,fun(x_star),deriv(x_star))
@@ -66,14 +60,12 @@ sample_x <- function(z, mat, n=1){
   
   # normalize p
   p_norm <- p/sum(p)
-  
   w <- runif(n)
   # determine the range we want to sample from
   i <- sum(cumsum(p_norm) < w) + 1
   
   # sample x using inverse cdf
   samp_x <- (log(p[i]*mat[i,3]*runif(n)+exp(mat[i,2]+(z[i]-mat[i,1])*mat[i,3]))-mat[i,2])/mat[i,3]+mat[i,1]
-  
   return(samp_x)
 }
 
@@ -96,34 +88,54 @@ check_concave <- function(mat){
 }
 
 ars <- function(samp_n, g, a=-Inf, b=Inf){
+  ## Take log of input function ##
+  h <- function(x,fun=g){
+  return(log(fun(x)))
+  }
+
+  #calculate the derivative of a function
+  Deriv <- function(x, fun=h){
+    return(Deriv_sub(x,fun,a,b))
+  }
+ 
+   
   #initialize return value
   final_x <- rep(NA, samp_n)
   
   counter <- 0
-  mat <- init_mat(a, b, g, Derv)
+  mat <- init_mat(a, b, h, Deriv)
   z <- init_z(a, b, mat)
   
   while(counter < samp_n){
     samp_x_n = 1
-    
     samp_x <- sample_x(z, mat, samp_x_n)
-    
     w <- runif(samp_x_n)
-    
+
     u <- upper_bound(z, mat, samp_x)
     l <- lower_bound(mat, samp_x)
-    
     if(w <= exp(l-u)){
       counter = counter + 1
       final_x[counter] = samp_x
     }
     else{
-      if (w <= exp(h(x,g)-u)){
+    if (w <= exp(h(x,g)-u)){
         counter = counter + 1
         final_x[counter] = samp_x
-      }
-      mat <- update_mat(mat, samp_x, h, Derv)
+    }
+    mat <- update_mat(mat, samp_x, h, Deriv)
+    z <- update_z(z, samp_x, mat)
     }
   }
-  
+return(final_x)
 }
+
+dnor <- function(x){
+  return((1/(sqrt(2*pi)))*exp(-(x^2)/2))
+}
+
+a <- ars(10000, dnor, a = -10, b = 10)
+
+plot(density(a))
+
+
+

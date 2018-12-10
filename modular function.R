@@ -1,13 +1,10 @@
-#change: 我把init_z里的a,b去掉了，ars里面还没有改
-#为什么可以一次抽好多个sample？
-#derive_sub 去掉了fun=h
 
 #calculate the derivative of a function numerically
 #x is the point to evaluate the derivate at
 #fun is the log-concave function h
 #a is the lower bound, b is the upper bound
 #return the derivative approximately h'(x) at x
-Deriv_sub <- function(x, fun, a, b){
+Deriv_sub <- function(x, fun = h, a, b){
   if (x == a) {return ((fun(x + 1e-9)-fun(x))/1e-9)}
   if (x == b) {return ((fun(x) - fun(x - 1e-9))/1e-9)}
   if (a <= x && x <= b) {return((fun(x + 1e-9)-fun(x - 1e-9))/2e-9)}
@@ -44,7 +41,7 @@ calc_z <-function(mat){
 #mat is the initial infor matrix
 #return initialize vector z given the initial infor matrix
 #z_0 is lower bound, z_k is the upper bound
-init_z <- function(mat){
+init_z <- function(a,b,mat){
   z <- c()
   z[1] <- mat[1,1]
   z[3] <- mat[2,1]

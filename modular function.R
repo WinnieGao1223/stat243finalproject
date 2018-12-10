@@ -41,7 +41,7 @@ calc_z <-function(mat){
 #mat is the initial infor matrix
 #return initialize vector z given the initial infor matrix
 #z_0 is lower bound, z_k is the upper bound
-init_z <- function(a,b,mat){
+init_z <- function(mat){
   z <- c()
   z[1] <- mat[1,1]
   z[3] <- mat[2,1]
@@ -74,16 +74,60 @@ update_z <- function(z,x_star,mat){
     stop("something wrong with info matrix", call. = FALSE)
   }
   index <- which(mat[,1] == x_star)
-  if ((index > 1) && (index < nrow(mat))) {
-    
-  }
   z <- c(z,NA)
   tmp_mat1 <- mat[(index-1):index,]
   tmp_mat2 <- mat[index:(index+1),]
-  z1 <- calc_z(tmp_mat1)
-  z2 <- calc_z(tmp_mat2)
+  if (sum(abs(diff(mat[(index-1):(index+1),3]))) < 1e-6){
+    z1 <- mat[(index-1),1] + (mat[(index+1),1] - mat[(index-1),1])/3
+    z2 <- mat[(index-1),1] + (mat[(index+1),1] - mat[(index-1),1])/3*2
+  } else {
+    z1 <- calc_z(tmp_mat1)
+    z2 <- calc_z(tmp_mat2)
+  }
+  if((round(z1, digits = 6) > round(z2, digits = 6))){
+    stop('something wrong with updated z value, check log-convexity!',
+         call. = FALSE)
+  }
   z[(index+2):length(z)] <- z[(index+1):(length(z)-1)]
   z[index] <- z1
   z[index+1] <- z2
   return(z)
+}
+
+#check if h'(x) decrease monotonically
+check_concave <- function(mat){
+  return(prod(mat[,3][-1] <= mat[,3][-nrow(mat)])==1)
+}
+
+#calculate the upper bound
+upper_bound <- function(z, mat, samp_x){
+  #compare samp_x with z to find which segment of line to calculate
+  index <- which(z > samp_x)[1] - 1
+  u <- mat[index,2] + (samp_x - mat[index,1])*mat[index,3]
+  return(u)
+}
+
+#calculate the lower bound
+lower_bound <- function(mat, samp_x){
+  index <- rev(which(mat[,1] < samp_x))[1]
+  l <- ((mat[(index+1),1]-samp_x)*mat[index,2]+(samp_x-mat[index,1])*mat[(index+1),2])/(mat[(index+1),1]-mat[index,1])
+  return(l)
+}
+
+#returns a new sample given the info matrix and z
+sample_x <- function(z, mat, n=1){
+uk1 <- exp(mat[,2]+(z[-1]-mat[,1])*mat[,3])
+uk2 <- exp(mat[,2]+(z[-length(z)]-mat[,1])*mat[,3])
+p <- rep(NA,nrow(mat))
+p <- (uk1-uk2)/mat[,3]
+
+# normalize p
+p_norm <- p/sum(p)
+w <- runif(n)
+# determine the range we want to sample from
+i <- sum(cumsum(p_norm) < w) + 1
+
+# sample x using inverse cdf
+samp_x <- (log(p[i]*mat[i,3]*runif(n)+exp(mat[i,2]+(z[i]-mat[i,1])*mat[i,3]))-mat[i,2])/mat[i,3]+mat[i,1]
+return(samp_x)
 }

@@ -69,7 +69,10 @@ update_mat <- function(mat,x_star,fun,deriv,a,b){
   return(mat)
 }
 
-
+#z is a ordered vector
+#mat is the updated infor matrix
+#x_star is the sample needed to be updated
+#retun the updated vector z given the updated infor matrix
 update_z <- function(z,x_star,mat){
   if (nrow(mat) <= 2){
     stop("something wrong with info matrix", call. = FALSE)
@@ -95,7 +98,10 @@ update_z <- function(z,x_star,mat){
   return(z)
 }
 
-
+#z is the updated vector
+#mat is the updated infor matrix
+#n is the number of sample
+#return one sample 
 sample_x <- function(z, mat, n=1){
   uk1 <- exp(mat[,2]+(z[-1]-mat[,1])*mat[,3])
   uk2 <- exp(mat[,2]+(z[-length(z)]-mat[,1])*mat[,3])
@@ -113,6 +119,10 @@ sample_x <- function(z, mat, n=1){
   return(samp_x)
 }
 
+#z is the updated vector
+#mat is the updated infor matrix
+#sample_x is the sample
+#calculate the upper bound
 upper_bound <- function(z, mat, samp_x){
   #compare samp_x with z to find which segment of line to calculate
   index <- which(z > samp_x)[1] - 1
@@ -120,6 +130,9 @@ upper_bound <- function(z, mat, samp_x){
   return(u)
 }
 
+#mat is the updated infor matrix
+#sample_x is the sample
+#calculate the lower bound
 lower_bound <- function(mat, samp_x){
   index <- rev(which(mat[,1] < samp_x))[1]
   l <- ((mat[(index+1),1]-samp_x)*mat[index,2]+(samp_x-mat[index,1])*mat[(index+1),2])/(mat[(index+1),1]-mat[index,1])
@@ -128,7 +141,6 @@ lower_bound <- function(mat, samp_x){
 
 #check if h'(x) decrease monotonically
 check_concave <- function(mat){
-  #check if h'(x) decrease monotonically
   return(prod(mat[,3][-1] <= mat[,3][-nrow(mat)])==1)
 }
 

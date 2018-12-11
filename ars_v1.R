@@ -46,7 +46,7 @@ init_z <- function(mat){
   z[1] <- mat[1,1]
   z[3] <- mat[2,1]
   #if the slopes at a and b are equal, set z as the mean of a and b
-  if (abs(mat[2,3]-mat[1,3]) < 1e-8){
+  if (abs(mat[2,3]-mat[1,3]) < 1e-9){
     z[2] <- (mat[2,1] + mat[1,1])/2
   } else {
     z[2] <- calc_z(mat)
@@ -78,7 +78,7 @@ update_z <- function(z,x_star,mat){
   z <- c(z,NA)
   tmp_mat1 <- mat[(index-1):index,]
   tmp_mat2 <- mat[index:(index+1),]
-  if (sum(abs(diff(mat[(index-1):(index+1),3]))) < 1e-6){
+  if (sum(abs(diff(mat[(index-1):(index+1),3]))) < 1e-9){
     z1 <- mat[(index-1),1] + (mat[(index+1),1] - mat[(index-1),1])/3
     z2 <- mat[(index-1),1] + (mat[(index+1),1] - mat[(index-1),1])/3*2
   } else {
@@ -133,19 +133,33 @@ check_concave <- function(mat){
 }
 
 ars <- function(samp_n, g, a=-Inf, b=Inf){
-  
+  ##Check if the input is valid or not
   if(class(g) != "function"){
     stop('g should be a function')
   }
   
-  ## Take log of input function ##
+  require(assertthat)
+  if(!assert_that(is.numeric(a))){
+    stop('please provide valid lower bound')
+  }
+  
+  if(!assert_that(is.numeric(b))){
+    stop('please provide valid upper bound')
+  }
+  
+  if(!assert_that(is.numeric(samp_n))){
+    stop('please provide valid sample size')
+  }
+  
+  ##Take log of input function ##
   h <- function(x){
     return(log(g(x)))
   }
   
   
-  #initialize return value
+  ##Initialize return value
   final_x <- rep(NA, samp_n)
+  ##Set a counter to control the sample size
   counter <- 0
   
   ##Check starting point
@@ -153,11 +167,15 @@ ars <- function(samp_n, g, a=-Inf, b=Inf){
   step_width <- 0.5
   start_val <- 0
   
+  ##Case 1: a is not -Inf, b is not Inf
   if(a != -Inf && b != Inf){
     mat <- init_mat(a, b, h, Deriv_sub)
     z <- init_z(mat)
+    if((abs(mat[1,3])<1e-9) && (abs(mat[2,3])<1e-9)){
+      return(list(f=h, sample = runif(samp_n,a,b)))
+    }
   }
-  
+  ##Case 2: a is -Inf, b is not Inf
   if(a == -Inf && b != Inf){
     if(start_val > b){
       start_val <- b - step_width
@@ -172,7 +190,7 @@ ars <- function(samp_n, g, a=-Inf, b=Inf){
     mat <- init_mat(a_star, b, h, Deriv_sub)
     z <- init_z(mat) ## wrong? a_star or a?
   }
-  
+  ##Case 3: a is not -Inf, b is Inf
   if(a != -Inf && b == Inf){
     if(start_val < a){
       start_val <- a + step_width
@@ -187,7 +205,7 @@ ars <- function(samp_n, g, a=-Inf, b=Inf){
     mat <- init_mat(a, b_star, h, Deriv_sub)
     z <- init_z(mat)
   }
-  
+  ##Case 4: a is -Inf, b is Inf
   if(a == -Inf && b == Inf){
     a_star <- start_val - step_width
     b_star <- start_val + step_width
@@ -207,16 +225,24 @@ ars <- function(samp_n, g, a=-Inf, b=Inf){
     z <- init_z(mat)
   }
   
+  ##Start Rejection Sampling process
   while(counter < samp_n){
+    ##Check the log concavity of the function
     if (!check_concave(mat)){
       stop('Input must be a log-concave function')
     }
+    ##Generate one sample x for each time
     samp_x_n = 1
     samp_x <- sample_x(z, mat, samp_x_n)
+    
+    ##Generate one uniformly distributed number
     w <- runif(samp_x_n)
     
+    ##Calulate the upper bound and lowerbond at specified sample point
     u <- upper_bound(z, mat, samp_x)
     l <- lower_bound(mat, samp_x)
+    
+    ##Reject/Accept sample
     if(w <= exp(l-u)){
       counter = counter + 1
       final_x[counter] = samp_x
@@ -230,13 +256,13 @@ ars <- function(samp_n, g, a=-Inf, b=Inf){
       z <- update_z(z, samp_x, mat)
     }
   }
-  return(final_x)
+  return(list(f=h, sample=final_x))
 }
 
 dnor <- function(x){
   return((1/(sqrt(2*pi)))*exp(-(x^2)/2))
 }
 
-a <- ars(10000, dnor, a = -10, b = 10)
+a <- ars(10000, dnor, a = -10, b = 10)$sample
 plot(density(a))
 qqnorm(a)

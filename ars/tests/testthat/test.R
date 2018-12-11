@@ -28,7 +28,7 @@ dx2 <- function(x){
 test_that("empirical distribution matches",{
   #test normal distribution
   print("testing the normal distribution")
-  samp_norm <- ars(10000, dnor, a = -10, b = 10)
+  samp_norm <- ars(10000, dnor, a = -10, b = 10)$sample
   ks_norm <- ks.test(samp_norm,rnorm(10000))
   if (expect_that(ks_norm$p.value, function(x){x > 0.05}) == TRUE){
     print("passed with normal distribution")
@@ -36,7 +36,7 @@ test_that("empirical distribution matches",{
   
   #test gamma distribution
   print("testing gamma(shape=2,scale=2) distribution")
-  samp_gamma <- ars(10000,dgam,a = 0.001, b = 1000)
+  samp_gamma <- ars(10000,dgam,a = 0.001, b = 1000)$sample
   ks_gamma <- ks.test(rgamma(10000,shape=2,scale=2),samp_gamma)
   if (expect_that(ks_gamma$p.value, function(x){x > 0.05}) == TRUE){
     print("passed with gamma distribution")
@@ -44,7 +44,7 @@ test_that("empirical distribution matches",{
   
   #test beta distribution
   print("testing beta(2,2) distribution")
-  samp_beta <- ars(10000,dbet,a=0.01,b=0.99)
+  samp_beta <- ars(10000,dbet,a=0.01,b=0.99)$sample
   ks_beta <- ks.test(samp_beta,rbeta(10000,2,2))
   if (expect_that(ks_beta$p.value,function(x){x>0.05}) == TRUE){
     print("passed with beta distribution")
@@ -52,7 +52,7 @@ test_that("empirical distribution matches",{
   
   #test chisq distribution
   print("testing chi-square distribution")
-  samp_chi <- ars(10000,dchi,a = 0.01,b=100)
+  samp_chi <- ars(10000,dchi,a = 0.01,b=100)$sample
   ks_chi <- ks.test(samp_chi,rchisq(10000,3))
   if (expect_that(ks_chi$p.value,function(x){x>0.05}) == TRUE){
     print("passed with chisq distribution")

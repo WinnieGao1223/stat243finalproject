@@ -1,6 +1,6 @@
 ---
 title: "Adaptive Rejection Sampling"
-author: "Jue Wang, Li Yang, Winnie Gao"
+author: "Jue Wang, Yang Li, Winnie Gao"
 date: "12/08/2018"
 output: pdf_document
 ---
@@ -27,7 +27,7 @@ Check the log-concavity of the density functions. Check if the derivative of fun
 - 3. init_mat:
 We create a matrix called mat to store the information that's collected during the rejection sampling process. 
 The first column is the value of sample x. 
-The second column is function h (which is log of original f function) evaluated at x.
+The second column is function h (which is log of original g function) evaluated at x.
 The third column is the derivative of function h evaluated at x.
 This function initializes mat, fills it with starting points provided by the user or starting points we find if they put -Inf or Inf.
 ```{r}
@@ -63,7 +63,9 @@ update_mat <- function(mat,x_star,fun,deriv,a,b){
 }
 ```
 - 5. init_z:
-Initialize z, which is a vector used to store calculated z value.
+Initialize z, which is a function used to initialize a vector that contains different z values. The input will be the initial mat matrix which containes starting point a and b as well as f(a),f(b),f'(a) and f'(b). We let the first element in the z vector to be the starting point a, and the last element in the z vector to be the starting point b. We calculate the first z given a and b using the formula below.
+$$z_j = \frac{h(x_{j+1})_h(x_j)-x_{j+1} h^{'}(x_{j+1}) + x_j h^{'}(x_j)}{h^{'}(x_j)-h^{'}(x_{j+1})}$$
+Then we put this newly calculated z into the z vector and initialize the z vector.
 ```{r}
 init_z <- function(mat){
   z <- c()
@@ -79,7 +81,7 @@ init_z <- function(mat){
 }
 ```
 - 6. update_z:
-Update z vector with new z values.
+update_z is a function we use to update the z vector with new z values.Each time we add a x value and recalculate the tangent line based on our current x value, we will get two new z points. we will add these two new z points in out vector. The location in vector z where we add these two new z points is determined by the magnitude of z relative to the existing z points. 
 ```{r}
 update_z <- function(z,x_star,mat){
   if (nrow(mat) <= 2){
@@ -147,13 +149,26 @@ Main Part (ars):
   3. Otherwise, reject the sample x and update the mat and z with this proposed sample x.
   
 ## (b) Vectorization
-  We use matrix to store the updated information and store z and output as vectors.
+  We use matrix to store the updated information and we store z values and the x we sampled as vectors.
+  
 # 2. Testing
 ## (a) Input Checking
   We wrote various tests to check if the inputs are valid, including check if the class of input function is actually a function, check if the starting points and sample size are numbers. We also checked whether the input function is log-concave and whther the function is defined on the given value.
+  
 ## (b) Unit Tests
 
 ## (c) Formal Testing
+We checked several empirical distributions. We compared the samples we got from the adaptive rejection sampling algorithm we wrote with the samples we directly draw from the emprical distributions using the built-in functions in R. We use the ks.test() function in R to perform Kolmogorov-Smirnov test on the two samples we had in order to see if the two samples were drawn from the same continuous distribution. The log-concave empirical distributions we tested are: standard normal distribution, gamma(2,2) distribution, beta(2,2) distribution, and chi-square(3) distribution. In the Kolmogorov-Smirnov test, our null hypothesis is that the samples are from the same distribution. In all the test resuts we have in regards to the above empirical distributions, the p-values are greater than 0.05. This means we fail to reject the null hypothesis. Therefore, we have done a pretty good job in terms of approximating the empirical distributions using adaptive rejection sampling. For the distribution that is not log-concave, we tested the $e^{x^2}$ distribution. And our algorithm successfully gave us an error message.
+
+## (d) Graphical Comparison
+```{r,echo=FALSE,out.width="50%"}
+knitr::include_graphics(c("Rplot.normal.png","Rplot.gamma.png")) 
+```
+
+
+```{r,echo=FALSE,out.width="50%"}
+knitr::include_graphics(c("Rplot.beta.png","Rplot.chisq.png"))
+```
 
 # 3. Contributions
-  Li, Jue and Winnie worked together to create the first draft of all the modular functions, and the main body of ars function. Then Jue started working on building the test cases for modular functions. And Li contributed to the test cases included in the ars function. Winnie wrote the codes about how to find the appropriate starting points where f(x) is defined. Then Jue took care of coding about special cases like uniform distribution case. Li wrote the formal testing. Winnie wrote the overall help page and compiled the first draft of writeup. All of three members contributed to revisions. We worked together to make everything into a package.
+  Yang, Jue and Winnie worked together to create the first draft of all the modular functions, and the main body of ars function. Then Jue started working on building the test cases for modular functions. And Yang contributed to the test cases included in the ars function. Winnie wrote the codes about how to find the appropriate starting points where f(x) is defined. Then Jue took care of coding about special cases like uniform distribution case. Yang wrote the formal testing. Winnie wrote the overall help page and compiled the first draft of writeup. All of three members contributed to revisions. We worked together to make everything into a package.

@@ -132,6 +132,31 @@ check_concave <- function(mat){
   return(prod(mat[,3][-1] <= mat[,3][-nrow(mat)])==1)
 }
 
+#' Adaptive Rejection Sampling
+#' 
+#' @param sample_n A number, denoting the number of sample points generated.
+#' @param g Univariate log-concave probability density function f(x).
+#' @param a First starting point where f(x) is defined, default value is -Inf.
+#' @param b Second starting point where f(x) is defined, default value is Inf.
+#' 
+#' @return A list containing Information about:
+#' \item{f}{logf(x)} 
+#' \item{sample}{A vector of size N containing sample points}
+#' @author Jue Wang, Li Yang, Winnie Gao
+#' @references Gilks, W.R., P. Wild. (1992) Adaptive Rejection Sampling for Gibbs Sampling, Applied Statistics 41:337–348.
+#' @example 
+#' #Sample from Normal Distribution
+#' library(ars)
+#' #Normal Distribution Density Function with mean=0 and variance=1
+#' dn <- function(x){
+#'    return((1/(sqrt(2*pi)))*exp(-(x^2)/2))
+#' }
+#' samp_x <- ars(10000, dn, -10, 10)$sample
+#' y <- dnorm(seq(-10,10,len=10000))
+#' plot(density(samp_x), type="l", col="red", main="Adaptive Rejection Sampling from Normal Distribution")
+#' points(x,y)
+#' 
+
 ars <- function(samp_n, g, a=-Inf, b=Inf){
   ##Check if the input is valid or not
   if(class(g) != "function"){

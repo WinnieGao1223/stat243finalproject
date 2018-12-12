@@ -23,6 +23,19 @@ A list containing Information about:
 \description{
 Adaptive Rejection Sampling
 }
+\examples{
+#Sample from Normal Distribution
+library(ars)
+#Normal Distribution Density Function with mean=0 and variance=1
+dn <- function(x){
+   return((1/(sqrt(2*pi)))*exp(-(x^2)/2))
+}
+samp_x <- ars(10000, dn, -10, 10)$sample
+y <- dnorm(seq(-10,10,len=10000))
+plot(density(samp_x), type="l", col="red", main="Adaptive Rejection Sampling from Normal Distribution")
+points(x,y)
+
+}
 \references{
 Gilks, W.R., P. Wild. (1992) Adaptive Rejection Sampling for Gibbs Sampling, Applied Statistics 41:337–348.
 }

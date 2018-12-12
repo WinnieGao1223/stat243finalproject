@@ -10,7 +10,7 @@
 #' \item{sample}{A vector of size N containing sample points}
 #' @author Jue Wang, Li Yang, Winnie Gao
 #' @references Gilks, W.R., P. Wild. (1992) Adaptive Rejection Sampling for Gibbs Sampling, Applied Statistics 41:337–348.
-#' @example
+#' @examples
 #' #Sample from Normal Distribution
 #' library(ars)
 #' #Normal Distribution Density Function with mean=0 and variance=1

@@ -173,6 +173,7 @@ Main Part (ars):
   
 ## (b) Unit Tests
   We wrote the testing to check if two major modular functions (update_mat and sample_x) performs in the expected way. 
+  
 - 1. For update_mat: we test if the first column in the updated matrix is in an ascending order.
 ```{r, echo=FALSE}
 library(testthat)
@@ -211,10 +212,10 @@ mat_test <- matrix(c(-2, 0, 2, h(-2),h(0),h(2),
 mat_update <- update_mat(mat_test,1,h,Deriv_sub,-2,2)
 expect_equal(mat_update[,1], sort(c(1,mat_test[,1])))
 if(sum(expect_equal(mat_update[,1], sort(c(1,mat_test[,1]))))){ 
-  print("the x in the updated matrix is in an ascending orderl, update_mat unit test passed")
+  print("the x in the updated matrix is in an ascending order, update_mat unit test passed")
 }
 ```
-- 2. For sample_x: we test if the sample is from the density we interested. We use standard normal distribution as our test case.
+- 2. For sample_x: we test if the sample is from the density we interested. We use exponential distribution as our test case.
 ```{r}
 set.seed(5) 
 a <- 0 
@@ -232,7 +233,7 @@ if(sum(expect_gt(out.test$p.value, 0.05))){
 expect_gt(out.test$p.value, 0.05)
 ```
 ## (c) Formal Testing
-  We checked several empirical distributions. We compared the samples we got from the adaptive rejection sampling algorithm we wrote with the samples we directly draw from the emprical distributions using the built-in functions in R. We use the ks.test() function in R to perform Kolmogorov-Smirnov test on the two samples we had in order to see if the two samples were drawn from the same continuous distribution. The log-concave empirical distributions we tested are: standard normal distribution, gamma(2,2) distribution, beta(2,2) distribution, and chi-square(3) distribution. In the Kolmogorov-Smirnov test, our null hypothesis is that the samples are from the same distribution. In all the test resuts we have in regards to the above empirical distributions, the p-values are greater than 0.05. This means we fail to reject the null hypothesis. Therefore, we have done a pretty good job in terms of approximating the empirical distributions using adaptive rejection sampling. For the distribution that is not log-concave, we tested the $e^{x^2}$ distribution. And our algorithm successfully gave us an error message.
+  We checked several empirical distributions. We compared the samples we got from the adaptive rejection sampling algorithm we wrote with the samples we directly draw from the emprical distributions using the built-in functions in R. We use the ks.test() function in R to perform Kolmogorov-Smirnov test on the two samples we had in order to see if the two samples were drawn from the same continuous distribution. The log-concave empirical distributions we tested are: standard normal distribution, gamma(2,2) distribution, beta(2,2) distribution, and chi-square(3) distribution. In the Kolmogorov-Smirnov test, our null hypothesis is that the samples are from the same distribution. In all the test results we have in regards to the above empirical distributions, the p-values are greater than 0.05. This means we fail to reject the null hypothesis. Therefore, we have done a pretty good job in terms of approximating the empirical distributions using adaptive rejection sampling. For the distribution that is not log-concave, we tested the $e^{x^2}$ distribution. And our algorithm successfully gave us an error message.
 
 ## (d) Graphical Comparison
 The red curve is plotted using the samples we got from adaptive rejection sampling and the black curve is plotted using the samples we drew directly from the emipricial distributions.

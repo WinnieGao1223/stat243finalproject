@@ -34,7 +34,7 @@ samp_x <- ars(10000, dn, -10, 10)$sample
 x <- seq(-10,10,len=10000)
 y <- dnorm(x)
 plot(density(samp_x), type="l", col="red", main="Adaptive Rejection Sampling from Normal Distribution")
-points(x,y)
+points(x,y,lwd=2)
 
 }
 \references{
